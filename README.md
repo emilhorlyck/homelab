@@ -47,6 +47,52 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 visit the webinterface on:´localhost:8080´
 
+## Accessing Services via Traefik
+
+### Minikube Tunnel
+
+Minikube doesn't have a built-in LoadBalancer controller, so LoadBalancer services will remain in `<pending>` state. To expose services properly, use `minikube tunnel`:
+
+```bash
+minikube tunnel
+```
+
+**Note:**
+- This command requires sudo/admin privileges
+- Keep this terminal running in the background
+- It will assign an EXTERNAL-IP to the Traefik LoadBalancer service
+
+### Configure Local DNS
+
+Once the tunnel is running, get the Traefik LoadBalancer IP:
+
+```bash
+kubectl get svc -n traefik traefik
+```
+
+The EXTERNAL-IP will typically be `127.0.0.1` when using minikube tunnel.
+
+Add the following entries to your `/etc/hosts` file:
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add these lines (replace `<EXTERNAL-IP>` with the actual IP from above):
+
+```
+<EXTERNAL-IP>  grafana.local argocd.local
+```
+
+### Access Services
+
+After configuring DNS, you can access services using their configured hostnames:
+
+- **Grafana**: `https://grafana.local`
+- **ArgoCD**: `https://argocd.local`
+
+**Note:** You may see SSL certificate warnings since we're using self-signed certificates. This is normal for local development.
+
 ## App of Apps Pattern
 
 This repository uses ArgoCD's [App of Apps](https://argo-cd.readthedocs.io/en/stable/operator-manual/cluster-bootstrapping/#app-of-apps-pattern) pattern to manage multiple applications declaratively.
