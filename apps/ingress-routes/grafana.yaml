@@ -8,7 +8,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`grafana.example.com`)
+      match: Host(`grafana.local`)
       services:
         - name: grafana
           port: 80

@@ -10,6 +10,8 @@ spec:
     path: apps
     repoURL: 'https://github.com/emilhorlyck/homelab'
     targetRevision: HEAD
+    directory:
+      recurse: true
   project: default
   syncPolicy:
     automated:

@@ -53,13 +53,13 @@ This repository uses ArgoCD's [App of Apps](https://argo-cd.readthedocs.io/en/st
 
 ### Structure
 
-The `apps/` folder contains ArgoCD `Application` YAML definitions. Each file in this directory represents a separate application that ArgoCD will deploy and manage.
+The `apps/` folder contains ArgoCD `Application` YAML definitions. Application definitions can be organized directly in the `apps/` folder or nested in subdirectories (e.g., `apps/infrastructure/`, `apps/observability/`). Each YAML file containing an `Application` resource represents a separate application that ArgoCD will deploy and manage.
 
-The root `app-of-apps.yaml` file is the parent Application that points to the `apps/` directory. When ArgoCD syncs this parent application, it automatically discovers and manages all Application manifests found in the `apps/` folder.
+The root `app-of-apps.yaml` file is the parent Application that points to the `apps/` directory. When ArgoCD syncs this parent application, it automatically discovers and manages all Application manifests found recursively within the `apps/` folder and its subdirectories.
 
 ### Apps Folder Requirements
 
-Each file in the `apps/` folder must be a valid ArgoCD `Application` resource with:
+Each YAML file in the `apps/` folder (or its subdirectories) must be a valid ArgoCD `Application` resource with:
 
 - `apiVersion: argoproj.io/v1alpha1`
 - `kind: Application`
@@ -71,6 +71,7 @@ Each file in the `apps/` folder must be a valid ArgoCD `Application` resource wi
 ### Example Application Definitions
 
 Applications can reference:
+
 - **Helm Charts** from chart repositories (e.g., `cert-manager.yaml`, `lgtm-distributed.yaml`)
 - **Git repositories** with Kubernetes manifests (e.g., `guestbook.yaml`)
 - **Local paths** within this repository
