@@ -11,9 +11,9 @@ spec:
     repoURL: 'https://github.com/emilhorlyck/homelab'
     targetRevision: HEAD
   project: default
-  # syncPolicy:
-  #   automated:
-  #     prune: true
-  #     selfHeal: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
   data:
     reposerver.git.polling.interval: 30s
