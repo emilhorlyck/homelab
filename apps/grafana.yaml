@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: grafana
+    targetRevision: '8.8.2'
+    helm:
+      values: |
+        adminPassword: admin
+        persistence:
+          enabled: true
+          size: 5Gi
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+              - name: Loki
+                type: loki
+                access: proxy
+                url: http://loki-gateway.lgtm.svc:80
+                isDefault: false
+                jsonData:
+                  derivedFields:
+                    - datasourceUid: tempo
+                      matcherRegex: "traceID=(\\w+)"
+                      name: TraceID
+                      url: "$${__value.raw}"
+              - name: Mimir
+                type: prometheus
+                access: proxy
+                url: http://mimir-nginx.lgtm.svc:80/prometheus
+                isDefault: true
+                jsonData:
+                  exemplarTraceIdDestinations:
+                    - name: traceID
+                      datasourceUid: tempo
+              - name: Tempo
+                type: tempo
+                access: proxy
+                url: http://tempo.lgtm.svc:3100
+                uid: tempo
+                isDefault: false
+                jsonData:
+                  tracesToLogsV2:
+                    datasourceUid: loki
+                    spanStartTimeShift: '-1h'
+                    spanEndTimeShift: '1h'
+                    filterByTraceID: true
+                    filterBySpanID: false
+                  tracesToMetrics:
+                    datasourceUid: mimir
+                  serviceMap:
+                    datasourceUid: mimir
+                  nodeGraph:
+                    enabled: true
+  destination:
+    namespace: lgtm
+    name: in-cluster
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
