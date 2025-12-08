@@ -1,24 +1,41 @@
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
+apiVersion: argoproj.io/v1alpha1
+kind: Application
 metadata:
-  name: argocd-server
+  name: traefik
   namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
-  entryPoints:
-    - websecure
-  routes:
-    - kind: Rule
-      match: Host(`argocd.example.com`)
-      priority: 10
-      services:
-        - name: argocd-server
-          port: 80
-    - kind: Rule
-      match: Host(`argocd.example.com`) && Header(`Content-Type`, `application/grpc`)
-      priority: 11
-      services:
-        - name: argocd-server
-          port: 80
-          scheme: h2c
-  tls:
-    certResolver: default
+  project: default
+  source:
+    repoURL: https://traefik.github.io/charts
+    chart: traefik
+    targetRevision: '33.2.0'
+    helm:
+      values: |
+        ingressRoute:
+          dashboard:
+            enabled: true
+        ports:
+          web:
+            port: 8000
+            expose:
+              default: true
+            exposedPort: 80
+          websecure:
+            port: 8443
+            expose:
+              default: true
+            exposedPort: 443
+            tls:
+              enabled: true
+        service:
+          type: LoadBalancer
+  destination:
+    namespace: traefik
+    name: in-cluster
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
