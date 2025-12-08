@@ -17,5 +17,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-  data:
-    reposerver.git.polling.interval: 30s
